@@ -1,0 +1,74 @@
+### 2019年9月24日
+### 组员： 
+### 35林诗祺，34李鹤，30李子仪，29陈永森，28谭耶真，27谭肖喻
+
+#####homework2
+rm(list=ls())
+options(stringsAsFactors = F)
+dat=read.csv("D:/中国科学院大学课程课件/人群队列大数据研究基础以及R实战（闭卷）/第一部分/work1.csv")
+####计算每个位点的等位基因频率，并绘制直方图
+new_dat=dat[,-ncol(dat)]
+ncol(new_dat)
+matrix1=as.data.frame(matrix(NA,100,3))
+names(matrix1)=c("snp","p","q")
+matrix1[,1]=colnames(new_dat)
+head(matrix1,n=0)
+for (i in 1:ncol(new_dat)){
+  temp=sum(new_dat[,i])  ###求出每列的隐性基因个数
+  q=temp/(nrow(new_dat)*2) ###求出隐性基因频率
+  matrix1[i,3]=q
+  p=1-q
+  matrix1[i,2]=p
+}
+####做直方图
+library(ggplot2)
+h1=matrix1$p
+h2=matrix1$q
+plot(h1,h2)
+hist(h1,xlim = c(0,1),ylim = c(0,1000),
+     main = "Hist q vs p",xlab = "p_col:red
+     q_col:green",
+     col = rgb(1,0,0,0.2))
+hist(h2,add =TRUE,
+     col = rgb(0,1,0,0.2))
+
+####显著性水平为0.05的情况下
+####请检测共有多少SNPs不符合哈德温伯格平衡
+matrix2=as.data.frame(matrix(NA,100,2))
+colnames(matrix2)=c("snp","p")
+matrix2[,1]=colnames(new_dat)
+for (i in 1:ncol(new_dat)){
+  temp=sum(new_dat[,i])  
+  q=temp/(nrow(new_dat)*2) 
+  p=1-q
+  a=new_dat[,i]
+  o=c(sum(a==0),sum(a==1),sum(a==2))
+  e=c(p^2,2*p*q,q^2)
+  chitest=chisq.test(o,p = e)
+  matrix2[i,2]=chitest
+}
+test5=matrix2$p<0.05
+table(test5)
+
+####显著性水平为0.0005情况下
+####请查看有多少个哪个位点对表型有显著影响
+matrix3=as.data.frame(matrix(NA,100,2))
+colnames(matrix3)=c("snp","p")
+matrix3[,1]=colnames(dat[,-ncol(dat)])
+for (i in 1:ncol(new_dat)){
+  fo=as.formula(paste0("y~",matrix3[i,1]))
+  test6=lm(fo,data = dat)
+  matrix3[i,2]=summary(test6)$coef[2,4]
+}
+table(matrix3$p<0.0005)
+matrix3[matrix3$p<0.0005,]
+
+####第二大题，吸烟与肺癌是否有关系
+####吸烟患肺癌：60，吸烟未患肺癌：32
+####不吸烟患肺癌：6，不吸烟不患肺癌：11
+test7=matrix(c(60,32,6,11),2,2,byrow = T)
+colnames(test7)=c("cancer","not cancer")
+rownames(test7)=c("smoking","no smoking")
+chisq.test(test7)
+names(chisq.test(test7))
+chisq.test(test7)$p.value
