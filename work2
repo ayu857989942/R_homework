@@ -44,10 +44,10 @@ for (i in 1:ncol(new_dat)){
   a=new_dat[,i]
   o=c(sum(a==0),sum(a==1),sum(a==2))
   e=c(p^2,2*p*q,q^2)
-  chitest=chisq.test(o,p = e)
+  chitest=chisq.test(o,p = e)$p.value
   matrix2[i,2]=chitest
 }
-test5=matrix2$p<0.05
+test5=matrix2[i,2]<0.05
 table(test5)
 
 ####显著性水平为0.0005情况下
